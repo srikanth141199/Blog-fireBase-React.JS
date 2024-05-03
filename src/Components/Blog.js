@@ -1,5 +1,9 @@
 //Blogging App with firebase
+import { db } from "../firebaseInit";
 import { useState, useRef, useEffect } from "react";
+import { collection, addDoc } from "firebase/firestore"; 
+
+
 
 export default function Blog(){
 
@@ -17,6 +21,13 @@ export default function Blog(){
         titleRef.current.focus();
 
         setBlogs([{title: formData.title,content:formData.content}, ...blogs]);
+        // Add a new document with a generated id.
+        const docRef = await addDoc(collection(db, "blogs"), {
+            title: formData.title,
+            content: formData.content,
+            createdOn : new Date()
+        });
+        //console.log("Document written with ID: ", docRef.id);
         
         setformData({title: "", content: ""});
     }
