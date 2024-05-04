@@ -1,7 +1,7 @@
 //Blogging App with firebase
 import { db } from "../firebaseInit";
 import { useState, useRef, useEffect } from "react";
-import { collection, addDoc } from "firebase/firestore"; 
+import { collection, addDoc, doc, setDoc, getDocs, onSnapshot, deleteDoc } from "firebase/firestore"; 
 
 
 
@@ -16,25 +16,65 @@ export default function Blog(){
         titleRef.current.focus()
     },[]);
 
+    useEffect(()=>{
+        // async function fetchData(){
+        //     const snapShot = await getDocs(collection(db, "blogs"));
+        //     console.log(snapShot);
+
+        //     const blogs = snapShot.docs.map((doc) => {
+        //         return{
+        //             id: doc.id,
+        //             ...doc.data()
+        //         }
+        //     })
+
+        //     console.log(blogs);
+        //     setBlogs(blogs)
+        // }
+        
+        // fetchData()
+
+        const unSub = onSnapshot(collection(db, "blogs"), (snapShot) =>{
+
+                const blogs = snapShot.docs.map((doc) => {
+                    return{
+                        id: doc.id,
+                        ...doc.data()
+                    }
+                })
+                setBlogs(blogs);
+        })
+    },[])
+
     async function handleSubmit(e){
         e.preventDefault();
         titleRef.current.focus();
 
         setBlogs([{title: formData.title,content:formData.content}, ...blogs]);
         // Add a new document with a generated id.
-        const docRef = await addDoc(collection(db, "blogs"), {
+        // const docRef = await addDoc(collection(db, "blogs"), {
+        //     title: formData.title,
+        //     content: formData.content,
+        //     createdOn : new Date()
+        // });
+        //console.log("Document written with ID: ", docRef.id);
+
+        const docRef = doc(collection(db, "blogs"))
+
+        await setDoc(docRef, {
             title: formData.title,
             content: formData.content,
             createdOn : new Date()
-        });
-        //console.log("Document written with ID: ", docRef.id);
+        })
         
         setformData({title: "", content: ""});
     }
 
     async function removeBlog(i){
 
-        setBlogs( blogs.filter((blog,index)=> index !== i));
+        //setBlogs( blogs.filter((blog,index)=> index !== i));
+        const docRef = doc(db, "blogs", i)
+        await deleteDoc(docRef);
  
      }
 
@@ -80,7 +120,7 @@ export default function Blog(){
 
                 <div className="blog-btn">
                         <button onClick={() => {
-                             removeBlog(i)
+                             removeBlog(blog.id)
                         }}
                         className="btn remove">
 
